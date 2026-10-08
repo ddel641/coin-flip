@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coin Flip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e4ebe8; --ink:#1c2b2a; --muted:#5d6f6c; --btn:#1c2b2a; --btn-ink:#e4ebe8;
+  --coin-a:#f1c65b; --coin-b:#c48a1a; --coin-edge:#8f620d; --coin-ink:#6b4607;
+  --shadow:rgba(28,43,42,.28);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#101a19; --ink:#e4ebe8; --muted:#8fa19e; --btn:#e4ebe8; --btn-ink:#101a19; --shadow:rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101a19; --ink:#e4ebe8; --muted:#8fa19e; --btn:#e4ebe8; --btn-ink:#101a19; --shadow:rgba(0,0,0,.6);
+}
+html{height:100%}
+body{min-height:100%}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Familjen Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2rem; padding:1.5rem; text-align:center;
+}
+.coins{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;width:min(100%,760px)}
+@media (max-width:560px){.coins{grid-template-columns:repeat(2,1fr);max-width:320px}}
+.stage{perspective:900px;width:100%;aspect-ratio:1}
+.hop{width:100%;height:100%}
+.hop.go{animation:hop 1.4s cubic-bezier(.3,.6,.4,1)}
+@keyframes hop{0%{transform:translateY(0)}45%{transform:translateY(-70px)}100%{transform:translateY(0)}}
+.coin{
+  width:100%;height:100%;position:relative;transform-style:preserve-3d;
+  transition:transform 1.4s cubic-bezier(.25,.7,.3,1);
+}
+.face{
+  position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 32% 28%,var(--coin-a),var(--coin-b));
+  border:4px solid var(--coin-edge); color:var(--coin-ink);
+  box-shadow:inset 0 0 0 7px rgba(255,255,255,.12), 0 18px 30px -12px var(--shadow);
+}
+.face.tails{transform:rotateY(180deg)}
+.face b{font-size:clamp(2.6rem,10vw,4.5rem);line-height:1;font-weight:700}
+.face span{font-size:.85rem;font-weight:500;margin-top:.25rem}
+.result{min-height:3.2rem;font-size:2.4rem;font-weight:700;margin:0}
+.result small{display:block;font-size:.95rem;font-weight:500;color:var(--muted)}
+button{
+  font:inherit;font-weight:700;font-size:1.1rem;cursor:pointer;
+  background:var(--btn);color:var(--btn-ink);border:0;border-radius:999px;padding:.9rem 2.4rem;
+}
+button:disabled{opacity:.55;cursor:default}
+button:focus-visible{outline:3px solid var(--coin-b);outline-offset:3px}
+.actions{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center}
+button.secondary{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+.history{list-style:none;margin:0;padding:0;width:min(100%,420px);max-height:12rem;overflow-y:auto;color:var(--muted);text-align:left}
+.history li{display:flex;justify-content:space-between;gap:1rem;padding:.45rem 0;border-bottom:1px solid var(--muted)}
+.history li:first-child{color:var(--ink)}
+.history .seq{font-weight:700;letter-spacing:.15em}
+.history.empty{text-align:center;border:0}
+.history.empty li{display:block;border:0}
+@media (prefers-reduced-motion:reduce){
+  .coin{transition-duration:.01s}
+  .hop.go{animation:none}
+}
+</style>
+</head>
+<body>
+<main style="display:contents">
+  <div class="coins" aria-hidden="true">
+    <div class="stage"><div class="hop"><div class="coin">
+      <div class="face heads"><b>H</b><span>Heads</span></div>
+      <div class="face tails"><b>T</b><span>Tails</span></div>
+    </div></div></div>
+    <div class="stage"><div class="hop"><div class="coin">
+      <div class="face heads"><b>H</b><span>Heads</span></div>
+      <div class="face tails"><b>T</b><span>Tails</span></div>
+    </div></div></div>
+    <div class="stage"><div class="hop"><div class="coin">
+      <div class="face heads"><b>H</b><span>Heads</span></div>
+      <div class="face tails"><b>T</b><span>Tails</span></div>
+    </div></div></div>
+    <div class="stage"><div class="hop"><div class="coin">
+      <div class="face heads"><b>H</b><span>Heads</span></div>
+      <div class="face tails"><b>T</b><span>Tails</span></div>
+    </div></div></div>
+  </div>
+  <p class="result" id="result" role="status" aria-live="polite">Ready to flip</p>
+  <div class="actions">
+    <button id="flip" type="button">Flip 4 coins</button>
+    <button id="reset" type="button" class="secondary">Reset</button>
+  </div>
+  <ol class="history empty" id="history" aria-label="Flip history"><li>No flips yet</li></ol>
+</main>
+<script>
+(function(){
+  var coins=[].slice.call(document.querySelectorAll('.coin')),
+      hops=[].slice.call(document.querySelectorAll('.hop')),
+      btn=document.getElementById('flip'), res=document.getElementById('result'),
+      history=document.getElementById('history'), resetBtn=document.getElementById('reset');
+  var rotations=[0,0,0,0], flips=[], busy=false;
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function randomBit(){
+    try{ var a=new Uint8Array(1); crypto.getRandomValues(a); return a[0]&1; }
+    catch(e){ return Math.random()<0.5?0:1; }
+  }
+
+  function renderHistory(){
+    history.innerHTML='';
+    history.className='history'+(flips.length?'':' empty');
+    if(!flips.length){ history.innerHTML='<li>No flips yet</li>'; return; }
+    flips.forEach(function(f){
+      var li=document.createElement('li');
+      li.innerHTML='<span>Flip '+f.n+'</span><span class="seq">'+f.seq+'</span><span>'+f.summary+'</span>';
+      history.appendChild(li);
+    });
+  }
+
+  resetBtn.addEventListener('click',function(){
+    if(busy) return;
+    flips=[]; rotations=[0,0,0,0];
+    coins.forEach(function(c){ c.style.transitionDuration='.4s'; c.style.transform='rotateY(0deg)'; });
+    res.textContent='Ready to flip';
+    renderHistory();
+  });
+
+  btn.addEventListener('click',function(){
+    if(busy) return;
+    busy=true; btn.disabled=true; resetBtn.disabled=true; res.textContent='Flipping…';
+    var h=0, t=0, order=[];
+    coins.forEach(function(coin,i){
+      var isTails=randomBit()===1;
+      if(isTails) t++; else h++;
+      order.push(isTails?'T':'H');
+      var spins=4+Math.floor(Math.random()*3);
+      rotations[i]=Math.ceil(rotations[i]/360)*360+360*spins+(isTails?180:0);
+      coin.style.transitionDuration=(1.2+i*0.12)+'s';
+      coin.style.transform='rotateY('+rotations[i]+'deg)';
+      hops[i].classList.remove('go'); void hops[i].offsetWidth; hops[i].classList.add('go');
+    });
+    setTimeout(function(){
+      var summary=h+' Heads, '+t+' Tails';
+      flips.unshift({seq:order.join(' '),summary:summary,n:flips.length+1});
+      res.innerHTML=summary+'<small>'+order.join(' ')+'</small>';
+      renderHistory();
+      busy=false; btn.disabled=false; resetBtn.disabled=false; btn.focus();
+    }, reduce?50:1750);
+  });
+})();
+</script>
+</body>
+</html>
